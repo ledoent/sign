@@ -2,11 +2,83 @@
 <!-- Copyright 2023 Dixmit
      License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
 <odoo>
-    <!-- TODO
-    <record model="sign.oca.template" id="sign_oca_template_demo_1">
-       <field name="name">...</field>
+    <record id="sign_field_date_today" model="sign.oca.field">
+        <field name="name">Signing Date</field>
+        <field name="field_type">date</field>
+        <field name="default_value">today</field>
     </record>
-    -->
+    <record id="sign_oca_template_demo" model="sign.oca.template">
+        <field name="name">Consulting Engagement Letter</field>
+        <field name="filename">engagement_letter.pdf</field>
+        <field name="data" type="base64" file="sign_oca/demo/engagement_letter.pdf" />
+    </record>
+    <record id="sign_oca_template_demo_item_name" model="sign.oca.template.item">
+        <field name="template_id" ref="sign_oca_template_demo" />
+        <field name="field_id" ref="sign_oca.sign_field_name" />
+        <field name="role_id" ref="sign_oca.sign_role_customer" />
+        <field name="placeholder">Client name</field>
+        <field name="page">1</field>
+        <field name="position_x">38.1</field>
+        <field name="position_y">36</field>
+        <field name="width">52.4</field>
+        <field name="height">2.7</field>
+    </record>
+    <record id="sign_oca_template_demo_item_text" model="sign.oca.template.item">
+        <field name="template_id" ref="sign_oca_template_demo" />
+        <field name="field_id" ref="sign_oca.sign_field_text" />
+        <field name="role_id" ref="sign_oca.sign_role_customer" />
+        <field name="placeholder">Describe the services</field>
+        <field name="page">1</field>
+        <field name="position_x">38.1</field>
+        <field name="position_y">41.1</field>
+        <field name="width">52.4</field>
+        <field name="height">2.7</field>
+    </record>
+    <record id="sign_oca_template_demo_item_date" model="sign.oca.template.item">
+        <field name="template_id" ref="sign_oca_template_demo" />
+        <field name="field_id" ref="sign_oca.sign_field_date" />
+        <field name="role_id" ref="sign_oca.sign_role_customer" />
+        <field name="placeholder">Start date</field>
+        <field name="page">1</field>
+        <field name="position_x">38.1</field>
+        <field name="position_y">46.1</field>
+        <field name="width">52.4</field>
+        <field name="height">2.7</field>
+    </record>
+    <record id="sign_oca_template_demo_item_date_today" model="sign.oca.template.item">
+        <field name="template_id" ref="sign_oca_template_demo" />
+        <field name="field_id" ref="sign_field_date_today" />
+        <field name="role_id" ref="sign_oca.sign_role_customer" />
+        <field name="placeholder">Signing date</field>
+        <field name="required" eval="True" />
+        <field name="page">1</field>
+        <field name="position_x">38.1</field>
+        <field name="position_y">51.2</field>
+        <field name="width">52.4</field>
+        <field name="height">2.7</field>
+    </record>
+    <record id="sign_oca_template_demo_item_check" model="sign.oca.template.item">
+        <field name="template_id" ref="sign_oca_template_demo" />
+        <field name="field_id" ref="sign_oca.sign_field_check" />
+        <field name="role_id" ref="sign_oca.sign_role_customer" />
+        <field name="required" eval="True" />
+        <field name="page">1</field>
+        <field name="position_x">9.5</field>
+        <field name="position_y">56.2</field>
+        <field name="width">3.8</field>
+        <field name="height">2.7</field>
+    </record>
+    <record id="sign_oca_template_demo_item_signature" model="sign.oca.template.item">
+        <field name="template_id" ref="sign_oca_template_demo" />
+        <field name="field_id" ref="sign_oca.sign_field_signature" />
+        <field name="role_id" ref="sign_oca.sign_role_customer" />
+        <field name="required" eval="True" />
+        <field name="page">1</field>
+        <field name="position_x">9.5</field>
+        <field name="position_y">66</field>
+        <field name="width">52.4</field>
+        <field name="height">10.1</field>
+    </record>
     <record id="sign_role_supervisor" model="sign.oca.role">
         <field name="name">Supervisor</field>
         <field name="partner_selection_policy">default</field>
