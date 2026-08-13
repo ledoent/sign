@@ -15,6 +15,7 @@
                     <group>
                         <field name="name" />
                         <field name="field_type" />
+                        <field name="default_value" />
                     </group>
                 </sheet>
             </form>
@@ -38,6 +39,8 @@
             <list>
                 <!-- TODO -->
                 <field name="name" />
+                <field name="field_type" />
+                <field name="default_value" optional="show" />
             </list>
         </field>
     </record>

@@ -203,6 +203,39 @@ class TestSign(SignOcaCommon, BaseCommon):
         self.assertEqual(res["type"], "ir.actions.act_url")
         self.assertEqual(res["url"], signer.access_url)
 
+    def test_sign_date_field(self):
+        """Signing a request with a date item must generate the final PDF.
+
+        Regression test for the report validation failure: _get_pdf_page
+        dispatches on field_type, so the date type needs its own renderer.
+        """
+        self.template.add_item(
+            {
+                "field_id": self.env.ref("sign_oca.sign_field_date").id,
+                "page": 1,
+                "position_x": 10,
+                "position_y": 30,
+                "width": 20,
+                "height": 10,
+                "required": True,
+            }
+        )
+        f = Form(
+            self.env["sign.oca.template.generate"].with_context(
+                default_template_id=self.template.id, default_sign_now=True
+            )
+        )
+        f.save().generate()
+        signer = self.template.request_ids.signer_id
+        data = {}
+        for key, item in signer.get_info()["items"].items():
+            val = item.copy()
+            val["value"] = "08/12/2026"
+            data[key] = val
+        signer.action_sign(data)
+        self.assertEqual(signer.request_id.state, "2_signed")
+        self.assertTrue(signer.request_id.data)
+
     def test_auto_sign_template_cancel(self):
         self.configure_template()
         self.assertEqual(0, self.template.request_count)

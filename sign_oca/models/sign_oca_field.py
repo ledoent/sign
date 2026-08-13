@@ -10,8 +10,17 @@ class SignOcaField(models.Model):
 
     name = fields.Char(required=True)
     field_type = fields.Selection(
-        [("text", "Text"), ("signature", "Signature"), ("check", "Check")],
+        [
+            ("text", "Text"),
+            ("signature", "Signature"),
+            ("check", "Check"),
+            ("date", "Date"),
+        ],
         required=True,
         default="text",
     )
-    default_value = fields.Char()
+    default_value = fields.Char(
+        help="Text fields: name of a signer attribute (name, email, phone) "
+        "used to prefill the value. Date fields: use 'today' to prefill "
+        "the signing date; the signer can still change it."
+    )
