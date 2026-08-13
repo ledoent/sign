@@ -31,6 +31,11 @@ const dateSignOca = {
         signatureItem[0].addEventListener("focus_signature", () => {
             input.focus();
         });
+        if (!item.value && item.default_value === "today") {
+            const isoToday = new Date().toISOString().split("T")[0];
+            input.value = isoToday;
+            this.change(isoToday, parent, item, signatureItem);
+        }
         input.addEventListener("focus", (ev) => {
             // Auto-fill with today's date when focused if empty
             if (!item.value) {

@@ -523,6 +523,11 @@ class SignOcaRequestSigner(models.Model):
         new_pdf = PdfReader(packet)
         return new_pdf.pages[0]
 
+    def _get_pdf_page_date(self, item, box):
+        # Dates are stamped onto the PDF as plain text; the widget stores the
+        # formatted string in item["value"].
+        return self._get_pdf_page_text(item, box)
+
     def _getParagraphStyle(self):
         return ParagraphStyle(name="Oca Sign Style")
 
