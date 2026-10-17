@@ -1,7 +1,10 @@
 # Copyright 2023 Dixmit
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
+from io import BytesIO
+
 from odoo.tests import Form
+from odoo.tools.pdf import PdfReader
 
 from odoo.addons.base.tests.common import BaseCommon
 
@@ -14,6 +17,21 @@ class TestSign(SignOcaCommon, BaseCommon):
         "mail.group_mail_template_editor",
         "base.group_partner_manager",
     )
+
+    def test_entered_text_is_literal(self):
+        box = PdfReader(BytesIO(self.request.data.content)).pages[0].mediabox
+        value = "<b>Synthetic & name</b>"
+        page = self.request.signer_ids._get_pdf_page_text(
+            {
+                "value": value,
+                "width": 80,
+                "height": 20,
+                "position_x": 10,
+                "position_y": 10,
+            },
+            box,
+        )
+        self.assertIn(value, page.extract_text())
 
     @classmethod
     def setUpClass(cls):

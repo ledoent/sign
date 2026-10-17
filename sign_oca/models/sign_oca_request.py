@@ -9,6 +9,7 @@ from binascii import Error as BinasciiError
 from hashlib import sha256
 from io import BytesIO
 from typing import ClassVar
+from xml.sax.saxutils import escape
 
 from reportlab.graphics.shapes import Drawing, Line, Rect
 from reportlab.lib.colors import black, transparent
@@ -515,7 +516,7 @@ class SignOcaRequestSigner(models.Model):
         can = canvas.Canvas(packet, pagesize=(box.width, box.height))
         if not item["value"]:
             return False
-        par = Paragraph(item["value"], style=self._getParagraphStyle())
+        par = Paragraph(escape(item["value"]), style=self._getParagraphStyle())
         par.wrap(
             item["width"] / 100 * float(box.width),
             item["height"] / 100 * float(box.height),
