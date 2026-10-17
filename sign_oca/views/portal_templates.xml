@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <template
+        id="portal_my_home_menu_sign"
+        name="Portal layout : sign_requests menu entries"
+        inherit_id="portal.portal_breadcrumbs"
+        priority="50"
+    >
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li
+                t-if="page_name == 'My Sign Requests' or sign_requests"
+                id="portal_breadcrumbs_sign"
+                t-attf-class="breadcrumb-item #{'active 'if not sign_requests else ''}"
+            >
+                <span>Sign Requests</span>
+            </li>
+        </xpath>
+    </template>
+
+    <template
+        id="portal_my_home"
+        inherit_id="portal.portal_my_home"
+        priority="100"
+        name="Portal layout : sign_requests button"
+        customize_show="True"
+    >
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
+            <t
+                t-call="portal.portal_docs_entry"
+                icon.f="/web/static/img/mimetypes/document.svg"
+                title.translate="Signature Requests"
+                url.f="/my/sign_requests"
+                text.translate="View, or sign documents"
+                placeholder_count.f="sign_oca_count"
+            />
+        </xpath>
+    </template>
+</odoo>
