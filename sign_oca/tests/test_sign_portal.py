@@ -115,7 +115,7 @@ class TestSignPortal(SignOcaCommon, HttpCase):
         self.assertEqual(self.request.state, "0_sent")
         self.env.flush_all()
         self.authenticate("portal", "portal")
-        response = self.url_open("/my/sign")
+        response = self.url_open("/my/sign_requests")
         response.raise_for_status()
         page = html.fromstring(response.content)
         self.assertIn(self.request.name, page.text_content())
