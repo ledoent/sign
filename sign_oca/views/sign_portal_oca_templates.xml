@@ -42,17 +42,14 @@
                                     </a>
                                 </t>
                                 <!-- the document needs to be signed by other partners -->
-                                <!-- the session partner can download the document but not fully signed -->
                                 <t t-else="">
-                                    <a
-                                        t-att-href="'/my/sign/%s/download' % sign_request.request_id.id"
-                                    >
+                                    <span>
                                         <t t-out="sign_request.request_id.name" />
                                         <span
                                             class="oi oi-clock mx-2"
-                                            title="Not fully signed!"
+                                            title="Awaiting other signatures"
                                         />
-                                    </a>
+                                    </span>
                                 </t>
                             </t>
                         </td>

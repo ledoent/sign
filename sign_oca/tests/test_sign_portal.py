@@ -3,6 +3,8 @@
 
 import base64
 
+from lxml import html
+
 from odoo.tests.common import HttpCase, tagged
 
 from .common import SignOcaCommon
@@ -94,6 +96,32 @@ class TestSignPortal(SignOcaCommon, HttpCase):
         signer.partner_id = self.signer
         self.env.flush_all()
         self.assertEqual(self.url_open(url).status_code, 404)
+
+    def test_pending_signed_request_has_no_download_link(self):
+        portal = self.env["res.users"].search([("login", "=", "portal")])
+        signer = self.request.signer_ids
+        signer.partner_id = portal.partner_id
+        self.env["sign.oca.request.signer"].create(
+            {
+                "request_id": self.request.id,
+                "partner_id": self.signer.id,
+                "role_id": self.env.ref("sign_oca.sign_role_employee").id,
+            }
+        )
+        items = signer.get_info()["items"]
+        for item in items.values():
+            item["value"] = "Synthetic Pending Signer"
+        signer.action_sign(items, access_token=signer.access_token)
+        self.assertEqual(self.request.state, "0_sent")
+        self.env.flush_all()
+        self.authenticate("portal", "portal")
+        response = self.url_open("/my/sign")
+        response.raise_for_status()
+        page = html.fromstring(response.content)
+        self.assertIn(self.request.name, page.text_content())
+        self.assertFalse(
+            page.xpath(f"//a[@href='/my/sign/{self.request.id}/download']")
+        )
 
     def test_empty_iframe_script(self):
         response = self.url_open("/sign_oca/get_assets.js")
