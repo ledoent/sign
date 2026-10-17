@@ -1,13 +1,15 @@
 # Copyright 2023 Dixmit
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
+from typing import ClassVar
+
 from odoo import api, fields, models
 
 
 class SignOcaTemplate(models.Model):
     _name = "sign.oca.template"
     _description = "Sign Oca Template"  # TODO
-    _inherit = ["mail.thread"]
+    _inherit: ClassVar = ["mail.thread"]
 
     name = fields.Char(required=True)
     data = fields.Binary(attachment=True, required=True)
@@ -17,7 +19,6 @@ class SignOcaTemplate(models.Model):
     request_count = fields.Integer(compute="_compute_request_count")
     model_id = fields.Many2one(
         comodel_name="ir.model",
-        string="Model",
         domain=[("transient", "=", False), ("model", "not like", "sign.oca")],
     )
     model = fields.Char(
