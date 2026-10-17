@@ -218,7 +218,7 @@ class PortalSign(CustomerPortal):
     def portal_download_signed(self, request_id, **kw):
         sign_request = request.env["sign.oca.request"].browse(request_id)
         if not sign_request.exists():
-            return request.not_found()
+            raise request.not_found()
         if request.env.user._is_internal():
             sign_request.check_access("read")
         else:
@@ -229,10 +229,10 @@ class PortalSign(CustomerPortal):
                 ]
             )
             if not request.env["sign.oca.request.signer"].sudo().search_count(domain):
-                return request.not_found()
+                raise request.not_found()
             sign_request = sign_request.sudo()
         if sign_request.state != "2_signed":
-            return request.not_found()
+            raise request.not_found()
         return (
             request.env["ir.binary"]
             ._get_stream_from(sign_request.sudo(), "data", mimetype="application/pdf")
