@@ -1,19 +1,28 @@
+import {
+    Component,
+    onMounted,
+    onWillStart,
+    onWillUnmount,
+    signal,
+    useProps,
+} from "@odoo/owl";
 /** @odoo-module **/
 /* global window, setTimeout, document, clearTimeout */
 import {_t} from "@web/core/l10n/translation";
-import {Component, onMounted, onWillStart, onWillUnmount, useRef} from "@odoo/owl";
+
 import {AlertDialog} from "@web/core/confirmation_dialog/confirmation_dialog";
 import {renderToString} from "@web/core/utils/render";
 import {useService} from "@web/core/utils/hooks";
 
 export default class SignOcaPdfCommon extends Component {
+    props = useProps();
     setup() {
         super.setup(...arguments);
         this.orm = useService("orm");
         this.field_template = "sign_oca.sign_iframe_field";
         this.pdf_url = this.getPdfUrl();
         this.viewer_url = "/web/static/lib/pdfjs/web/viewer.html?file=" + this.pdf_url;
-        this.iframe = useRef("sign_oca_iframe");
+        this.iframe = signal.ref();
         var iframeResolve = "";
         var iframeReject = "";
         this.iframeLoaded = new Promise(function (resolve, reject) {
@@ -39,7 +48,7 @@ export default class SignOcaPdfCommon extends Component {
         this.info = await this.orm.call(this.model, "get_info", [[this.res_id]]);
     }
     waitIframeLoaded() {
-        var error = this.iframe.el.contentDocument.getElementById("errorWrapper");
+        var error = this.iframe().contentDocument.getElementById("errorWrapper");
         if (error && window.getComputedStyle(error).display !== "none") {
             this.iframeLoaded.resolve();
             return this.dialogService.add(AlertDialog, {
@@ -47,11 +56,9 @@ export default class SignOcaPdfCommon extends Component {
             });
         }
         var nbPages =
-            this.iframe.el.contentDocument.getElementsByClassName("page").length;
+            this.iframe().contentDocument.getElementsByClassName("page").length;
         var nbLayers =
-            this.iframe.el.contentDocument.getElementsByClassName(
-                "endOfContent"
-            ).length;
+            this.iframe().contentDocument.getElementsByClassName("endOfContent").length;
         if (nbPages > 0 && nbLayers > 0) {
             this.postIframeFields();
             this.reviewFields();
@@ -64,7 +71,7 @@ export default class SignOcaPdfCommon extends Component {
     }
     reviewFields() {
         if (
-            this.iframe.el.contentDocument.getElementsByClassName("o_sign_oca_ready")
+            this.iframe().contentDocument.getElementsByClassName("o_sign_oca_ready")
                 .length === 0
         ) {
             this.postIframeFields();
@@ -72,8 +79,8 @@ export default class SignOcaPdfCommon extends Component {
         this.reviewFieldsTimeout = setTimeout(this.reviewFields.bind(this), 1000);
     }
     postIframeFields() {
-        this.iframe.el.contentDocument
-            .getElementById("viewerContainer")
+        this.iframe()
+            .contentDocument.getElementById("viewerContainer")
             .addEventListener(
                 "drop",
                 (e) => {
@@ -86,21 +93,15 @@ export default class SignOcaPdfCommon extends Component {
         iframeCss.setAttribute("rel", "stylesheet");
         iframeCss.setAttribute("href", "/sign_oca/get_assets.css");
 
-        var iframeJs = document.createElement("script");
-        iframeJs.setAttribute("type", "text/javascript");
-        iframeJs.setAttribute("src", "/sign_oca/get_assets.js");
-        this.iframe.el.contentDocument
-            .getElementsByTagName("head")[0]
-            .append(iframeCss);
-        this.iframe.el.contentDocument.getElementsByTagName("head")[0].append(iframeJs);
+        this.iframe().contentDocument.getElementsByTagName("head")[0].append(iframeCss);
         $.each(this.info.items, (key) => {
             this.postIframeField(this.info.items[key]);
         });
-        $(this.iframe.el.contentDocument.getElementsByClassName("page")[0]).append(
+        $(this.iframe().contentDocument.getElementsByClassName("page")[0]).append(
             $("<div class='o_sign_oca_ready'/>")
         );
 
-        $(this.iframe.el.contentDocument.getElementById("viewer")).addClass(
+        $(this.iframe().contentDocument.getElementById("viewer")).addClass(
             "sign_oca_ready"
         );
         this.iframeLoaded.resolve();
@@ -110,9 +111,7 @@ export default class SignOcaPdfCommon extends Component {
             this.items[item.id].remove();
         }
         var page =
-            this.iframe.el.contentDocument.getElementsByClassName("page")[
-                item.page - 1
-            ];
+            this.iframe().contentDocument.getElementsByClassName("page")[item.page - 1];
         var signatureItem = $(
             renderToString(this.field_template, {
                 ...item,
@@ -138,4 +137,3 @@ export default class SignOcaPdfCommon extends Component {
     }
 }
 SignOcaPdfCommon.template = "sign_oca.SignOcaPdfCommon";
-SignOcaPdfCommon.props = [];

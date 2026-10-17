@@ -3,10 +3,11 @@
 import {FormController} from "@web/views/form/form_controller";
 import {ListController} from "@web/views/list/list_controller";
 import {_t} from "@web/core/l10n/translation";
-import {onWillStart} from "@odoo/owl";
+import {onWillStart, usePlugin} from "@odoo/owl";
 import {patch} from "@web/core/utils/patch";
 import {useService} from "@web/core/utils/hooks";
 import {user} from "@web/core/user";
+import {ActionPlugin} from "@web/webclient/actions/action_plugin";
 
 export function patchControllerSignOca() {
     return {
@@ -14,7 +15,7 @@ export function patchControllerSignOca() {
             super.setup(...arguments);
             this.user = user;
             this.orm = useService("orm");
-            this.action = useService("action");
+            this.action = usePlugin(ActionPlugin);
             this.showSignOcaTemplateGenerateMulti = false;
             onWillStart(async () => {
                 return Promise.all([this._showSignOcaTemplateGenerateMulti()]);
@@ -58,7 +59,7 @@ export function patchControllerSignOca() {
                     key: "sign",
                     description: _t("Sign from template"),
                     callback: () => this._actionSignOcaTemplateGenerateMulti(),
-                    icon: "fa fa-pencil",
+                    icon: "fa oi-pencil",
                 });
             }
             return menuItems;

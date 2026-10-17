@@ -3,9 +3,8 @@
 
 {
     "name": "Sign Oca",
-    "summary": """
-        Allow to sign documents inside Odoo CE""",
-    "version": "19.0.1.0.0",
+    "summary": "Allow to sign documents inside Odoo CE",
+    "version": "20.0.1.0.0",
     "license": "AGPL-3",
     "author": "Dixmit,Odoo Community Association (OCA)",
     "website": "https://github.com/OCA/sign",
@@ -23,20 +22,20 @@
         "views/res_partner_views.xml",
         "views/sign_oca_request_log.xml",
         "views/sign_oca_request.xml",
-        "security/ir.model.access.csv",
         "views/sign_oca_field.xml",
         "views/sign_oca_role.xml",
         "views/sign_oca_template.xml",
         "templates/assets.xml",
         "reports/signature_certificate.xml",
         "reports/signature_certificate_report.xml",
+        "security/ir.access.csv",
     ],
     "demo": [
         "demo/sign_oca_template.xml",
     ],
     "assets": {
         "web.assets_backend": [
-            ("include", "web._assets_jquery"),
+            "sign_oca/static/lib/jquery/jquery.js",
             "sign_oca/static/src/components/sign_oca_pdf_common/sign_oca_pdf_common.xml",
             "sign_oca/static/src/components/sign_oca_configure/sign_oca_configure.xml",
             "sign_oca/static/src/components/sign_oca_pdf/sign_oca_pdf.xml",
@@ -61,7 +60,7 @@
             ("include", "web._assets_helpers"),
             ("include", "web._assets_primary_variables"),
             ("include", "web._assets_frontend_helpers"),
-            "web/static/lib/jquery/jquery.js",
+            "sign_oca/static/lib/jquery/jquery.js",
             "web/static/src/scss/pre_variables.scss",
             "web/static/lib/bootstrap/scss/_variables.scss",
             "web/static/lib/bootstrap/scss/_variables-dark.scss",
@@ -72,7 +71,6 @@
             "web/static/lib/bootstrap/scss/_functions.scss",
             "web/static/lib/bootstrap/scss/_mixins.scss",
             "web/static/lib/bootstrap/scss/utilities/_api.scss",
-            "web/static/src/libs/fontawesome/css/font-awesome.css",
             ("include", "web._assets_core"),
             # especific module frontend imports
             "sign_oca/static/src/components/sign_oca_pdf_common/sign_oca_pdf_common.xml",
@@ -93,7 +91,6 @@
         ],
         "sign_oca.sign_assets": [
             "sign_oca/static/src/scss/sign.scss",
-            "web/static/src/libs/fontawesome/css/font-awesome.css",
         ],
         "web.assets_tests": [
             "sign_oca/static/src/tests/sign_tour.esm.js",

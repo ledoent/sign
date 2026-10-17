@@ -14,7 +14,23 @@ class SignOcaTemplateGenerate(models.TransientModel):
         )
         if not template:
             return []
-        return [(0, 0, {"role_id": role.id}) for role in template.item_ids.role_id]
+        return [
+            (
+                0,
+                0,
+                {
+                    "role_id": role.id,
+                    "partner_id": (
+                        self.env.user.partner_id.id
+                        if self.env.context.get("default_sign_now")
+                        else role.default_partner_id.id
+                        if role.partner_selection_policy == "default"
+                        else False
+                    ),
+                },
+            )
+            for role in template.item_ids.role_id
+        ]
 
     template_id = fields.Many2one("sign.oca.template")
     signer_ids = fields.One2many(

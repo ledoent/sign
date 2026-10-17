@@ -4,9 +4,11 @@
 import hashlib
 import json
 import logging
-from base64 import b64decode, b64encode
+from base64 import b64decode
+from binascii import Error as BinasciiError
 from hashlib import sha256
 from io import BytesIO
+from typing import ClassVar
 
 from reportlab.graphics.shapes import Drawing, Line, Rect
 from reportlab.lib.colors import black, transparent
@@ -18,6 +20,7 @@ from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
 from odoo.http import request
 from odoo.tools import float_repr
+from odoo.tools.binary import BinaryBytes
 from odoo.tools.pdf import PdfReader, PdfWriter
 
 _logger = logging.getLogger(__name__)
@@ -25,7 +28,7 @@ _logger = logging.getLogger(__name__)
 
 class SignOcaRequest(models.Model):
     _name = "sign.oca.request"
-    _inherit = ["mail.thread", "mail.activity.mixin"]
+    _inherit: ClassVar = ["mail.thread", "mail.activity.mixin"]
     _description = "Sign Request"
     _order = "state, id desc"
 
@@ -61,7 +64,6 @@ class SignOcaRequest(models.Model):
         comodel_name="sign.oca.request.signer",
         compute="_compute_signer_id",
         help="The signer related to the active user.",
-        string="Signer",
     )
     state = fields.Selection(
         [
@@ -116,7 +118,12 @@ class SignOcaRequest(models.Model):
     def sign(self):
         self.ensure_one()
         if not self.signer_id:
-            return self.get_formview_action()
+            return {
+                "type": "ir.actions.act_window",
+                "res_model": self._name,
+                "res_id": self.id,
+                "view_mode": "form",
+            }
         return self.signer_id.sign()
 
     @api.depends("signatory_data")
@@ -124,7 +131,7 @@ class SignOcaRequest(models.Model):
         for record in self:
             record.next_item_id = (
                 record.signatory_data
-                and max([int(key) for key in record.signatory_data.keys()])
+                and max(int(key) for key in record.signatory_data)
                 or 0
             ) + 1
 
@@ -336,7 +343,7 @@ class SignOcaRequest(models.Model):
 
 class SignOcaRequestSigner(models.Model):
     _name = "sign.oca.request.signer"
-    _inherit = ["portal.mixin", "mail.thread", "mail.activity.mixin"]
+    _inherit: ClassVar = ["portal.mixin", "mail.thread", "mail.activity.mixin"]
     _description = "Sign Request Value"
     _order = "signed_on desc, create_date desc, id desc"
 
@@ -443,7 +450,7 @@ class SignOcaRequestSigner(models.Model):
         # current_hash = self.request_id.current_hash
         signatory_data = self.request_id.signatory_data or {}
 
-        input_data = BytesIO(b64decode(self.request_id.data))
+        input_data = BytesIO(self.request_id.data.content)
         reader = PdfReader(input_data)
         output = PdfWriter()
         pages = {}
@@ -456,12 +463,12 @@ class SignOcaRequestSigner(models.Model):
                 self._check_signable(items[key])
                 item = items[key]
                 page = pages[item["page"]]
-                new_page = self._get_pdf_page(item, page.mediaBox)
+                new_page = self._get_pdf_page(item, page.mediabox)
                 if new_page:
-                    page.mergePage(new_page)
+                    page.merge_page(new_page)
                 pages[item["page"]] = page
-        for page_number in pages:
-            output.addPage(pages[page_number])
+        for page in pages.values():
+            output.add_page(page)
         output_stream = BytesIO()
         output.write(output_stream)
         output_stream.seek(0)
@@ -471,7 +478,7 @@ class SignOcaRequestSigner(models.Model):
         self.request_id.write(
             {
                 "signatory_data": signatory_data,
-                "data": b64encode(signed_pdf),
+                "data": BinaryBytes(signed_pdf),
                 "current_hash": final_hash,
             }
         )
@@ -505,18 +512,18 @@ class SignOcaRequestSigner(models.Model):
 
     def _get_pdf_page_text(self, item, box):
         packet = BytesIO()
-        can = canvas.Canvas(packet, pagesize=(box.getWidth(), box.getHeight()))
+        can = canvas.Canvas(packet, pagesize=(box.width, box.height))
         if not item["value"]:
             return False
         par = Paragraph(item["value"], style=self._getParagraphStyle())
         par.wrap(
-            item["width"] / 100 * float(box.getWidth()),
-            item["height"] / 100 * float(box.getHeight()),
+            item["width"] / 100 * float(box.width),
+            item["height"] / 100 * float(box.height),
         )
         par.drawOn(
             can,
-            item["position_x"] / 100 * float(box.getWidth()),
-            (100 - item["position_y"] - item["height"]) / 100 * float(box.getHeight()),
+            item["position_x"] / 100 * float(box.width),
+            (100 - item["position_y"] - item["height"]) / 100 * float(box.height),
         )
         can.save()
         packet.seek(0)
@@ -528,9 +535,9 @@ class SignOcaRequestSigner(models.Model):
 
     def _get_pdf_page_check(self, item, box):
         packet = BytesIO()
-        can = canvas.Canvas(packet, pagesize=(box.getWidth(), box.getHeight()))
-        width = item["width"] / 100 * float(box.getWidth())
-        height = item["height"] / 100 * float(box.getHeight())
+        can = canvas.Canvas(packet, pagesize=(box.width, box.height))
+        width = item["width"] / 100 * float(box.width)
+        height = item["height"] / 100 * float(box.height)
         drawing = Drawing(width=width, height=height)
         drawing.add(
             Rect(
@@ -548,8 +555,8 @@ class SignOcaRequestSigner(models.Model):
             drawing.add(Line(0, height, width, 0, strokeColor=black, strokeWidth=3))
         drawing.drawOn(
             can,
-            item["position_x"] / 100 * float(box.getWidth()),
-            (100 - item["position_y"] - item["height"]) / 100 * float(box.getHeight()),
+            item["position_x"] / 100 * float(box.width),
+            (100 - item["position_y"] - item["height"]) / 100 * float(box.height),
         )
         can.save()
         packet.seek(0)
@@ -558,7 +565,7 @@ class SignOcaRequestSigner(models.Model):
 
     def _get_pdf_page_signature(self, item, box):
         packet = BytesIO()
-        can = canvas.Canvas(packet, pagesize=(box.getWidth(), box.getHeight()))
+        can = canvas.Canvas(packet, pagesize=(box.width, box.height))
         if not item["value"]:
             return False
         try:
@@ -570,17 +577,15 @@ class SignOcaRequestSigner(models.Model):
             image_data = b64decode(base64_str)
             par = Image(
                 BytesIO(image_data),
-                width=item["width"] / 100 * float(box.getWidth()),
-                height=item["height"] / 100 * float(box.getHeight()),
+                width=item["width"] / 100 * float(box.width),
+                height=item["height"] / 100 * float(box.height),
             )
             par.drawOn(
                 can,
-                item["position_x"] / 100 * float(box.getWidth()),
-                (100 - item["position_y"] - item["height"])
-                / 100
-                * float(box.getHeight()),
+                item["position_x"] / 100 * float(box.width),
+                (100 - item["position_y"] - item["height"]) / 100 * float(box.height),
             )
-        except Exception as e:
+        except (BinasciiError, ValueError, OSError) as e:
             _logger.info(f"Error decoding Base64 string: {e}")
             return False
         can.save()
@@ -605,8 +610,10 @@ class SignOcaRequestSigner(models.Model):
         )
 
     @api.depends(
-        lambda r: ["request_id.data", "inalterable_hash", "secure_sequence_number"]
-        + r._get_integrity_hash_fields()
+        lambda r: (
+            ["request_id.data", "inalterable_hash", "secure_sequence_number"]
+            + r._get_integrity_hash_fields()
+        )
     )
     def _compute_altered_hash(self):
         for record in self:
@@ -671,7 +678,6 @@ class SignOcaRequestSigner(models.Model):
 
 class SignRequestLog(models.Model):
     _name = "sign.oca.request.log"
-    _description = "Sign Request Log"
     _log_access = False
     _description = "Log access and edition on requests"
 

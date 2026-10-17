@@ -75,3 +75,27 @@ class TestSignPortal(SignOcaCommon, HttpCase):
             val = self.request.signer_ids.get_info()["items"][key].copy()
             val["value"] = "My Name"
             data[key] = val
+
+    def test_download_requires_completed_owned_request(self):
+        self.authenticate("portal", "portal")
+        url = f"/my/sign/{self.request.id}/download"
+        self.assertEqual(self.url_open(url).status_code, 404)
+        portal = self.env["res.users"].search([("login", "=", "portal")])
+        signer = self.request.signer_ids
+        signer.partner_id = portal.partner_id
+        items = signer.get_info()["items"]
+        for item in items.values():
+            item["value"] = "Synthetic Portal Signer"
+        signer.action_sign(items, access_token=signer.access_token)
+        self.env.flush_all()
+        response = self.url_open(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, self.request.data.content)
+        signer.partner_id = self.signer
+        self.env.flush_all()
+        self.assertEqual(self.url_open(url).status_code, 404)
+
+    def test_empty_iframe_script(self):
+        response = self.url_open("/sign_oca/get_assets.js")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, b"")

@@ -4,16 +4,16 @@
         <div class="o_sign_oca_content">
             <iframe
                 class="o_sign_oca_iframe"
-                t-att-src="viewer_url"
-                t-ref="sign_oca_iframe"
+                t-att-src="this.viewer_url"
+                t-ref="this.iframe"
             />
         </div>
     </t>
     <t t-name="sign_oca.sign_iframe_field">
         <div
-            t-attf-class="o_sign_oca_field #{required? 'sign_oca_field_required': ''}"
-            t-att-data-field="id"
-            t-attf-style="position:absolute;top:#{position_y}%; left: #{position_x}%; width: #{width}%;height: #{height}%"
+            t-attf-class="o_sign_oca_field #{this.required? 'sign_oca_field_required': ''}"
+            t-att-data-field="this.id"
+            t-attf-style="position:absolute;top:#{this.position_y}%; left: #{this.position_x}%; width: #{this.width}%;height: #{this.height}%"
         />
     </t>
 </templates>

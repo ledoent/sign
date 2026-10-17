@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <odoo>
-    <record model="ir.ui.view" id="sign_oca_request_form_view">
+    <record id="sign_oca_request_form_view" model="ir.ui.view">
         <field name="name">sign.oca.request.form (in sign_oca)</field>
         <field name="model">sign.oca.request</field>
         <field name="arch" type="xml">
@@ -19,7 +19,7 @@
                         type="object"
                         invisible="state != '1_draft'"
                         name="action_send"
-                        icon="fa-paper-plane"
+                        icon="oi-send"
                     />
                     <button
                         string="Cancel"
@@ -42,7 +42,7 @@
                             name="preview"
                             type="object"
                             class="oe_stat_button"
-                            icon="fa-pencil"
+                            icon="oi-pencil"
                             invisible="state not in ['0_sent', '2_signed']"
                             groups="sign_oca.sign_oca_group_user"
                         >
@@ -56,7 +56,7 @@
                         </button>
                         <button
                             class="oe_stat_button"
-                            icon="fa-wrench"
+                            icon="oi-settings-adjust"
                             invisible="state not in ['1_draft']"
                             name="configure"
                             type="object"
@@ -65,7 +65,7 @@
                         />
                         <button
                             class="oe_stat_button"
-                            icon="fa-pencil"
+                            icon="oi-pencil"
                             name="%(sign_oca_request_log_act_window)s"
                             type="action"
                             string="Activity Log"
@@ -125,7 +125,7 @@
         </field>
     </record>
 
-    <record model="ir.ui.view" id="sign_oca_request_search_view">
+    <record id="sign_oca_request_search_view" model="ir.ui.view">
         <field name="name">sign.oca.request.search (in sign_oca)</field>
         <field name="model">sign.oca.request</field>
         <field name="arch" type="xml">
@@ -206,7 +206,7 @@
         </field>
     </record>
 
-    <record model="ir.ui.view" id="sign_oca_request_tree_view">
+    <record id="sign_oca_request_tree_view" model="ir.ui.view">
         <field name="name">sign.oca.request.list (in sign_oca)</field>
         <field name="model">sign.oca.request</field>
         <field name="arch" type="xml">
@@ -230,7 +230,7 @@
         </field>
     </record>
 
-    <record model="ir.ui.view" id="sign_oca_request_kanban_view">
+    <record id="sign_oca_request_kanban_view" model="ir.ui.view">
         <field name="name">sign.oca.request.kanban (in sign_oca)</field>
         <field name="model">sign.oca.request</field>
         <field name="arch" type="xml">
@@ -245,32 +245,27 @@
                 <field name="template_id" />
                 <templates>
                     <t t-name="menu">
+                        <a role="menuitem" type="open" class="dropdown-item">Details</a>
                         <a
-                            role="menuitem"
-                            type="object"
-                            name="get_formview_action"
+                            t-if="record.template_id.raw_value"
                             class="dropdown-item"
-                        >Details</a>
-                        <a
                             role="menuitem"
                             type="object"
                             name="open_template"
-                            t-if="record.template_id.raw_value"
-                            class="dropdown-item"
                         >Template</a>
                         <a
+                            t-if="record.active.raw_value"
+                            class="dropdown-item"
                             role="menuitem"
                             type="object"
                             name="action_archive"
-                            class="dropdown-item"
-                            t-if="record.active.raw_value"
                         >Archive</a>
                         <a
+                            t-if="!record.active.raw_value"
+                            class="dropdown-item"
                             role="menuitem"
                             type="object"
                             name="action_unarchive"
-                            class="dropdown-item"
-                            t-if="!record.active.raw_value"
                         >Restore</a>
                     </t>
                     <t t-name="card">
@@ -310,7 +305,7 @@
         </field>
     </record>
 
-    <record model="ir.ui.view" id="sign_oca_request_signer_tree_view">
+    <record id="sign_oca_request_signer_tree_view" model="ir.ui.view">
         <field name="name">sign.oca.request.signer.list (in sign_oca)</field>
         <field name="model">sign.oca.request.signer</field>
         <field name="arch" type="xml">
@@ -323,7 +318,7 @@
             </list>
         </field>
     </record>
-    <record model="ir.ui.view" id="sign_oca_request_signer_form_view">
+    <record id="sign_oca_request_signer_form_view" model="ir.ui.view">
         <field name="name">sign.oca.request.signer.form (in sign_oca)</field>
         <field name="model">sign.oca.request.signer</field>
         <field name="arch" type="xml">
@@ -354,7 +349,7 @@
         </field>
     </record>
 
-    <record model="ir.ui.view" id="sign_oca_request_signer_kanban_view">
+    <record id="sign_oca_request_signer_kanban_view" model="ir.ui.view">
         <field name="name">sign.oca.request.signer.kanban (in sign_oca)</field>
         <field name="model">sign.oca.request.signer</field>
         <field name="arch" type="xml">
@@ -366,12 +361,7 @@
                 <field name="altered_hash" invisible="1" />
                 <templates>
                     <t t-name="menu">
-                        <a
-                            role="menuitem"
-                            type="object"
-                            name="get_formview_action"
-                            class="dropdown-item"
-                        >Details</a>
+                        <a role="menuitem" type="open" class="dropdown-item">Details</a>
                     </t>
                     <t t-name="card">
                         <div class="row">
@@ -405,7 +395,7 @@
         </field>
     </record>
 
-    <record model="ir.ui.view" id="sign_oca_request_signer_search_view">
+    <record id="sign_oca_request_signer_search_view" model="ir.ui.view">
         <field name="name">sign.oca.request.signer.search (in sign_oca)</field>
         <field name="model">sign.oca.request.signer</field>
         <field name="arch" type="xml">
@@ -430,7 +420,7 @@
         </field>
     </record>
 
-    <record model="ir.actions.act_window" id="sign_oca_request_signer_act_window">
+    <record id="sign_oca_request_signer_act_window" model="ir.actions.act_window">
         <field name="name">Sign Request Signers</field>
         <field name="res_model">sign.oca.request.signer</field>
         <field name="view_mode">kanban,list,form,activity</field>
@@ -438,7 +428,7 @@
         <field name="context">{}</field>
     </record>
 
-    <record model="ir.actions.act_window" id="sign_oca_request_act_window">
+    <record id="sign_oca_request_act_window" model="ir.actions.act_window">
         <field name="name">Sign Requests</field>
         <field name="res_model">sign.oca.request</field>
         <field name="view_mode">kanban,list,form</field>
@@ -446,7 +436,7 @@
         <field name="context">{}</field>
     </record>
 
-    <record model="ir.actions.act_window" id="sign_oca_request_template_act_window">
+    <record id="sign_oca_request_template_act_window" model="ir.actions.act_window">
         <field name="name">Sign Requests</field>
         <field name="res_model">sign.oca.request</field>
         <field name="view_mode">kanban,list,form</field>
@@ -454,7 +444,7 @@
         <field name="context">{}</field>
     </record>
 
-    <record model="ir.ui.menu" id="sign_oca_request_menu">
+    <record id="sign_oca_request_menu" model="ir.ui.menu">
         <field name="name">Requests</field>
         <field name="parent_id" ref="sign_oca_root_menu" />
         <field name="action" ref="sign_oca_request_act_window" />

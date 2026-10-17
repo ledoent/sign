@@ -22,7 +22,7 @@ export default class SignOcaConfigure extends SignOcaPdfCommon {
     postIframeFields() {
         super.postIframeFields(...arguments);
         $.each(
-            this.iframe.el.contentDocument.getElementsByClassName("page"),
+            this.iframe().contentDocument.getElementsByClassName("page"),
             (index, page) => {
                 page.addEventListener("mousedown", (e) => {
                     e.preventDefault();
@@ -51,7 +51,7 @@ export default class SignOcaConfigure extends SignOcaPdfCommon {
                 });
             }
         );
-        this.iframe.el.contentDocument.addEventListener(
+        this.iframe().contentDocument.addEventListener(
             "click",
             (ev) => {
                 if (this.contextMenu && !this.creatingItem) {
@@ -316,9 +316,4 @@ export default class SignOcaConfigure extends SignOcaPdfCommon {
 }
 SignOcaConfigure.template = "sign_oca.SignOcaConfigure";
 SignOcaConfigure.components = {...SignOcaPdfCommon.components, ControlPanel};
-SignOcaConfigure.props = [];
-SignOcaConfigure.props = {
-    action: Object,
-    "*": {optional: true},
-};
 registry.category("actions").add("sign_oca_configure", SignOcaConfigure);

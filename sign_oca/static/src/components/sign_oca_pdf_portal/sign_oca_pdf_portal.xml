@@ -27,18 +27,18 @@
             </header>
             <iframe
                 class="o_sign_oca_iframe"
-                t-att-src="viewer_url"
-                t-ref="sign_oca_iframe"
+                t-att-src="this.viewer_url"
+                t-ref="this.iframe"
             />
             <div
                 class="o_sign_oca_footer"
-                t-ref="sign_oca_footer"
+                t-ref="this.signOcaFooter"
                 style="display:none;"
             >
                 <div class="o_sign_validation_buttons justify-content-center">
                     <button
-                        class="btn btn-primary"
                         id="sign_oca_button"
+                        class="btn btn-primary"
                         t-on-click="(ev) => this._onClickSign(ev)"
                     >Validate &amp; Send document</button>
                 </div>

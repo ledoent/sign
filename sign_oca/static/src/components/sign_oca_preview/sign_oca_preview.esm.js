@@ -15,8 +15,4 @@ export default class SignOcaPreview extends SignOcaPdfCommon {
 }
 SignOcaPreview.template = "sign_oca.SignOcaPreview";
 SignOcaPreview.components = {...SignOcaPdfCommon.components, ControlPanel};
-SignOcaPreview.props = {
-    action: Object,
-    "*": {optional: true},
-};
 registry.category("actions").add("sign_oca_preview", SignOcaPreview);

@@ -130,6 +130,3 @@ export default class SignOcaPdf extends SignOcaPdfCommon {
         this.checkToSign();
     }
 }
-SignOcaPdf.props = {
-    to_sign: {type: Boolean, optional: true},
-};

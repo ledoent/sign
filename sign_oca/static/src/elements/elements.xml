@@ -3,11 +3,11 @@
 
     <t t-name="sign_oca.sign_iframe_field_check">
         <input
-            t-if="item.role == role"
+            t-if="this.item.role == this.role"
             style="width:100%;height:100%;"
             type="checkbox"
             t-att-tabindex="-1"
-            t-att-checked="item.value? item.value: undefined"
+            t-att-checked="this.item.value? this.item.value: undefined"
         />
         <div t-else="" />
     </t>
@@ -16,23 +16,23 @@
             style="width:100%;height:100%"
             type="text"
             t-att-tabindex="-1"
-            t-att-value="item.value? item.value: undefined"
-            t-att-placeholder="item.placeholder || item.name"
-            t-if="item.role == role"
+            t-att-value="this.item.value? this.item.value: undefined"
+            t-att-placeholder="this.item.placeholder || this.item.name"
+            t-if="this.item.role == this.role"
         />
         <div
             style="width:100%;height:100%"
-            t-out="item.value? item.value: undefined"
+            t-out="this.item.value? this.item.value: undefined"
             t-else=""
         />
     </t>
     <t t-name="sign_oca.sign_iframe_field_signature">
         <img
             style="width:100%;height:100%"
-            t-attf-src="{{item.value}}"
-            t-if="item.value"
+            t-attf-src="{{this.item.value}}"
+            t-if="this.item.value"
         />
-        <div style="width:100%;height:100%" t-else="" t-out="placeholder" />
+        <div style="width:100%;height:100%" t-else="" t-out="this.placeholder" />
     </t>
     <t t-name="sign_oca.sign_oca_sign_dialog">
         <div>
