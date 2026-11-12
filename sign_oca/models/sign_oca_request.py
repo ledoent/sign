@@ -318,7 +318,28 @@ class SignOcaRequest(models.Model):
         vals.update(
             {"action": action, "request_id": self.id, "ip": self._get_action_log_ip()}
         )
+        # `uid` and `partner_id` default off `r.env.user`, which on the portal
+        # path is OdooBot: portal's _document_check_access returns the record
+        # `with_user(SUPERUSER_ID)` (its own docstring says "SUDOED, with
+        # SUPERUSER context"), and the controller signs on that record. So the
+        # log recorded who wrote the row, not who acted. Resolve both here from
+        # the HTTP request's own env, which is still the real caller.
+        user = self._get_action_log_user()
+        vals.setdefault("uid", user.id)
+        signer = self.env["sign.oca.request.signer"].browse(vals.get("signer_id"))
+        if signer and vals.get("access_token"):
+            # A token-bearing portal call: the signer may be a bare partner with
+            # no res.users at all, so the partner is the only real identity.
+            vals.setdefault("partner_id", signer.partner_id.id)
+        else:
+            vals.setdefault("partner_id", user.partner_id.id)
         return vals
+
+    def _get_action_log_user(self):
+        # NOT self.env.user: self may be a sudo'd recordset.
+        if request and getattr(request, "env", None) is not None:
+            return request.env.user
+        return self.env.user
 
     def _get_action_log_ip(self):
         if not request or not hasattr(request, "httprequest"):

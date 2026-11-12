@@ -2,6 +2,7 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 import base64
+import json
 
 from lxml import html
 
@@ -127,3 +128,49 @@ class TestSignPortal(SignOcaCommon, HttpCase):
         response = self.url_open("/sign_oca/get_assets.js")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, b"")
+
+    def test_signing_logs_the_signer_not_the_superuser(self):
+        """The audit log must name who signed, not who wrote the row.
+
+        It has to go through the HTTP route to mean anything. The controller
+        signs on a sudo'd recordset, and since 20.0 sudo() switches env.user to
+        the superuser -- so the log's `uid`/`partner_id` defaults resolved to
+        OdooBot for every signature. Calling action_sign() directly from a test
+        has no request env to go wrong, and passes either way.
+        """
+        signer = self.request.signer_ids
+        items = signer.get_info()["items"]
+        for item in items.values():
+            item["value"] = "Synthetic Public Signer"
+        # A public session, not an authenticated one: this is how a signer who
+        # has no Odoo account reaches the route. Without it url_open carries no
+        # session cookie and the request resolves no database at all.
+        self.authenticate(None, None)
+        self.url_open(
+            f"/sign_oca/sign/{signer.id}/{signer.access_token}",
+            data=json.dumps(
+                {
+                    "params": {
+                        "signer_id": signer.id,
+                        "access_token": signer.access_token,
+                        "items": items,
+                    }
+                }
+            ),
+            headers={"Content-Type": "application/json"},
+        ).raise_for_status()
+        self.env.flush_all()
+        self.request.invalidate_recordset()
+
+        log = self.env["sign.oca.request.log"].search(
+            [("request_id", "=", self.request.id), ("action", "=", "sign")]
+        )
+        self.assertTrue(log, "signing recorded no audit entry at all")
+        odoobot = self.env.ref("base.partner_root")
+        for entry in log:
+            self.assertNotEqual(
+                entry.partner_id,
+                odoobot,
+                "audit log credits OdooBot instead of the signer",
+            )
+            self.assertEqual(entry.partner_id, signer.partner_id)
