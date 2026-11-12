@@ -7,9 +7,10 @@ edit_sign_role,edit_sign_role,sign.oca.role,sign_oca.sign_oca_group_user,r,
 edit_sign_role_admin,edit_sign_role_admin,sign.oca.role,sign_oca.sign_oca_group_admin,crud,
 edit_sign_field,edit_sign_field,sign.oca.field,sign_oca.sign_oca_group_user,r,
 edit_sign_field_admin,edit_sign_field_admin,sign.oca.field,sign_oca.sign_oca_group_admin,crud,
-edit_sign_request_base_user,edit_sign_request,sign.oca.request,base.group_user,r,
+edit_sign_request_base_user,Sign Request base users: read,sign.oca.request,base.group_user,r,"['|', ('message_partner_ids', 'child_of', [user.partner_id.commercial_partner_id.id]), ('signer_ids.partner_id', 'child_of', [user.partner_id.commercial_partner_id.id])]"
 edit_sign_request,edit_sign_request,sign.oca.request,sign_oca.sign_oca_group_user,cu,
-edit_sign_request_admin,edit_sign_request_admin,sign.oca.request,sign_oca.sign_oca_group_admin,cud,
+sign_oca_request_rule_manager_read,Sign Request manager: read,sign.oca.request,sign_oca.sign_oca_group_manager,r,
+edit_sign_request_admin,edit_sign_request_admin,sign.oca.request,sign_oca.sign_oca_group_admin,crud,
 sign_oca_request_rule_company,Sign Request Company,sign.oca.request,,crud,"[('company_id', 'in', company_ids)]"
 sign_oca_request_signer_rule_base_user_read,Sign Request base users: read,sign.oca.request.signer,base.group_user,r,"[('partner_id', 'child_of', [user.partner_id.commercial_partner_id.id])]"
 sign_oca_request_signer_rule_user_read,Sign Request Signer user: read,sign.oca.request.signer,sign_oca.sign_oca_group_user,r,"[('request_id.message_partner_ids', 'child_of', [user.partner_id.commercial_partner_id.id])]"
