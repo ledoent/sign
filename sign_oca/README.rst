@@ -166,6 +166,10 @@ Contributors
 
   - Mohamed Alkobrosli
 
+- `Ledo Web Services <https://ledoweb.com>`__:
+
+  - Don Kendall
+
 Maintainers
 -----------
 

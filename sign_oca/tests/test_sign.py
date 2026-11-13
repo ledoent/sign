@@ -2,6 +2,9 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 from io import BytesIO
+from unittest.mock import patch
+
+from lxml import html
 
 from odoo.tests import Form
 from odoo.tools.pdf import PdfReader
@@ -17,6 +20,71 @@ class TestSign(SignOcaCommon, BaseCommon):
         "mail.group_mail_template_editor",
         "base.group_partner_manager",
     )
+
+    def test_completed_email_document_and_recipient(self):
+        self.request.company_id.sudo().sign_oca_send_sign_request_copy = True
+        self.request.write(
+            {
+                "state": "2_signed",
+                "name": "Agreement <Client>",
+                "filename": "agreement.pdf",
+            }
+        )
+        original_pdf = self.request.data.content
+        with patch.object(type(self.env["mail.thread"]), "message_notify") as notify:
+            self.request.action_send_signed_request()
+        notify.assert_called_once()
+        values = notify.call_args.kwargs
+        self.assertEqual(values["partner_ids"], self.signer.ids)
+        self.assertEqual(values["subject"], "Fully signed: Agreement <Client>")
+        self.assertIn("Agreement &lt;Client&gt;", values["body"])
+        self.assertIn("All parties have signed", values["body"])
+        self.assertIn("View signed PDF", values["body"])
+        signer = self.request.signer_ids
+        self.assertIn(
+            f"/sign_oca/content/{signer.id}/{signer.access_token}", values["body"]
+        )
+        self.assertFalse(values["email_add_signature"])
+        self.assertEqual(
+            values["email_layout_xmlid"], "sign_oca.mail_notification_completion"
+        )
+        attachments = self.env["ir.attachment"].browse(values["attachment_ids"])
+        self.assertEqual(len(attachments), 1)
+        self.assertEqual(attachments.name, "agreement - signed.pdf")
+        self.assertEqual(self.request.data.content, original_pdf)
+
+    def test_completed_email_button_survives_mail_sanitization(self):
+        self.request.company_id.sudo().sign_oca_send_sign_request_copy = True
+        self.signer.email = "signer@example.test"
+        self.request.write({"state": "2_signed", "filename": "agreement.pdf"})
+        self.request.with_context(
+            mail_notify_force_send=False
+        ).action_send_signed_request()
+        mail = (
+            self.env["mail.mail"]
+            .sudo()
+            .search(
+                [("recipient_ids", "in", self.signer.ids)], order="id desc", limit=1
+            )
+        )
+        self.assertTrue(mail)
+        self.assertEqual(mail.state, "outgoing")
+        link = html.fromstring(mail.body_html).xpath(
+            '//a[contains(@href, "/sign_oca/content/")]'
+        )[0]
+        style = link.get("style", "").replace(" ", "").lower()
+        self.assertIn("background-color:#173b4a", style)
+        self.assertIn("color:#ffffff", style)
+        self.assertEqual(link.text_content(), "View signed PDF")
+
+    def test_completed_email_only_for_enabled_completed_requests(self):
+        with patch.object(type(self.env["mail.thread"]), "message_notify") as notify:
+            self.request.company_id.sudo().sign_oca_send_sign_request_copy = True
+            self.request.action_send_signed_request()
+            self.request.write({"state": "2_signed"})
+            self.request.company_id.sudo().sign_oca_send_sign_request_copy = False
+            self.request.action_send_signed_request()
+        notify.assert_not_called()
 
     def test_entered_text_is_literal(self):
         box = PdfReader(BytesIO(self.request.data.content)).pages[0].mediabox
