@@ -61,6 +61,24 @@
     input[type="checkbox"] {
         accent-color: #1d4ed8;
     }
+    .o_sign_oca_signature_button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+        padding: 0;
+        border: 0;
+        border-radius: inherit;
+        background: transparent;
+        color: inherit;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        &:focus {
+            outline: none;
+        }
+    }
 }
 .o_sign_oca_field_config {
     position: absolute;
