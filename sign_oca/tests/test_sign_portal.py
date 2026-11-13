@@ -75,3 +75,31 @@ class TestSignPortal(SignOcaCommon, HttpCase):
             val = self.request.signer_ids.get_info()["items"][key].copy()
             val["value"] = "My Name"
             data[key] = val
+
+    def test_download_requires_completed_owned_request(self):
+        """The download route must refuse a portal user who is not a signer.
+
+        `request_id` is a sequential integer, so without this check any
+        authenticated user can walk ids and retrieve every signed document on
+        the instance.
+        """
+        self.authenticate("portal", "portal")
+        url = f"/my/sign/{self.request.id}/download"
+        # Not a signer, and the request is not signed either.
+        self.assertEqual(self.url_open(url).status_code, 404)
+        portal = self.env["res.users"].search([("login", "=", "portal")])
+        signer = self.request.signer_ids
+        signer.partner_id = portal.partner_id
+        items = signer.get_info()["items"]
+        for item in items.values():
+            item["value"] = "Synthetic Portal Signer"
+        signer.action_sign(items, access_token=signer.access_token)
+        self.env.flush_all()
+        # Now the entitled signer, on a signed request: served.
+        response = self.url_open(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, base64.b64decode(self.request.data))
+        # Hand the request to somebody else: refused again.
+        signer.partner_id = self.signer
+        self.env.flush_all()
+        self.assertEqual(self.url_open(url).status_code, 404)
