@@ -4,3 +4,6 @@
 
 - [Kencove](https://www.kencove.com):
   - Mohamed Alkobrosli
+
+- [Ledo Web Services](https://ledoweb.com):
+  - Don Kendall

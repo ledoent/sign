@@ -15,6 +15,7 @@
         "views/sign_portal_oca_templates.xml",
         "views/portal_templates.xml",
         "data/data.xml",
+        "data/portal_entry_data.xml",
         "wizards/res_config_settings_views.xml",
         "data/ir_sequence_data.xml",
         "wizards/sign_oca_template_generate.xml",
