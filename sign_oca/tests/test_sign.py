@@ -20,7 +20,7 @@ class TestSign(SignOcaCommon, BaseCommon):
     )
 
     def test_completed_email_document_and_recipient(self):
-        self.request.company_id.sign_oca_send_sign_request_copy = True
+        self.request.company_id.sudo().sign_oca_send_sign_request_copy = True
         self.request.write(
             {
                 "state": "2_signed",
@@ -53,10 +53,10 @@ class TestSign(SignOcaCommon, BaseCommon):
 
     def test_completed_email_only_for_enabled_completed_requests(self):
         with patch.object(type(self.env["mail.thread"]), "message_notify") as notify:
-            self.request.company_id.sign_oca_send_sign_request_copy = True
+            self.request.company_id.sudo().sign_oca_send_sign_request_copy = True
             self.request.action_send_signed_request()
             self.request.write({"state": "2_signed"})
-            self.request.company_id.sign_oca_send_sign_request_copy = False
+            self.request.company_id.sudo().sign_oca_send_sign_request_copy = False
             self.request.action_send_signed_request()
         notify.assert_not_called()
 
