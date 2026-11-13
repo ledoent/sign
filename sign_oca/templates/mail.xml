@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <template id="sign_oca_completed_mail" name="Signed document confirmation">
+        <table
+            role="presentation"
+            width="100%"
+            cellpadding="0"
+            cellspacing="0"
+            border="0"
+            style="background-color:#f5f4f1;font-family:Arial,Helvetica,sans-serif;color:#202c35;"
+        >
+            <tr>
+                <td align="center" style="padding:32px 16px;">
+                    <table
+                        role="presentation"
+                        width="600"
+                        cellpadding="0"
+                        cellspacing="0"
+                        border="0"
+                        style="width:100%;max-width:600px;background-color:#ffffff;border:1px solid #e3e5e7;border-radius:12px;"
+                    >
+                        <tr>
+                            <td
+                                style="padding:28px 32px 24px;border-bottom:1px solid #e3e5e7;"
+                            >
+                                <img
+                                    t-att-src="'%s/web/binary/company_logo?company=%s' % (base_url, company.id)"
+                                    t-att-alt="company.name"
+                                    height="40"
+                                    style="display:block;max-width:180px;height:40px;width:auto;border:0;"
+                                />
+                                <p
+                                    style="margin:12px 0 0;font-size:12px;font-weight:bold;letter-spacing:1px;color:#56616b;"
+                                    t-out="company.name"
+                                />
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding:32px;">
+                                <span
+                                    style="display:inline-block;padding:6px 10px;border-radius:4px;background-color:#eaf5ee;color:#24643c;font-size:12px;font-weight:bold;"
+                                >ALL SIGNATURES COMPLETE</span>
+                                <h1
+                                    style="margin:18px 0 20px;font-size:28px;line-height:1.2;letter-spacing:-0.5px;color:#172b36;"
+                                >Your signed document is ready.</h1>
+                                <p
+                                    style="margin:0 0 12px;font-size:16px;line-height:1.6;"
+                                >Hello <t t-out="signer.partner_id.name" />,</p>
+                                <p
+                                    style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#48545e;"
+                                >All parties have signed. Your completed PDF is attached to this email for your records.</p>
+                                <table
+                                    role="presentation"
+                                    width="100%"
+                                    cellpadding="0"
+                                    cellspacing="0"
+                                    border="0"
+                                    style="background-color:#f7f8fa;border:1px solid #e3e5e7;border-radius:6px;"
+                                >
+                                    <tr>
+                                        <td style="padding:20px;">
+                                            <p
+                                                style="margin:0 0 8px;font-size:11px;font-weight:bold;letter-spacing:1px;color:#56616b;"
+                                            >COMPLETED DOCUMENT</p>
+                                            <p
+                                                style="margin:0 0 10px;font-size:18px;line-height:1.4;font-weight:bold;color:#172b36;"
+                                                t-out="document.name"
+                                            />
+                                            <p
+                                                style="margin:0;font-size:13px;line-height:1.5;color:#56616b;overflow-wrap:anywhere;"
+                                                t-out="filename"
+                                            />
+                                        </td>
+                                    </tr>
+                                </table>
+                                <table
+                                    role="presentation"
+                                    cellpadding="0"
+                                    cellspacing="0"
+                                    border="0"
+                                    style="margin-top:24px;"
+                                >
+                                    <tr>
+                                        <td
+                                            bgcolor="#173b4a"
+                                            style="border-radius:6px;"
+                                        >
+                                            <a
+                                                t-att-href="document_url"
+                                                style="display:inline-block;padding:14px 22px;border:1px solid #173b4a;border-radius:6px;color:#ffffff;font-size:15px;font-weight:bold;text-decoration:none;"
+                                            >View signed PDF</a>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <p
+                                    t-if="portal_url"
+                                    style="margin:18px 0 0;font-size:14px;line-height:1.5;color:#48545e;"
+                                >You can also find this document in <a
+                                    t-att-href="portal_url"
+                                    style="color:#173b4a;text-decoration:underline;"
+                                >your client portal</a>.</p>
+                                <p
+                                    style="margin:28px 0 0;font-size:15px;line-height:1.6;color:#48545e;"
+                                >Thank you,<br /><strong t-out="company.name" /></p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td
+                                style="padding:20px 32px;border-top:1px solid #e3e5e7;font-size:12px;line-height:1.6;color:#68737c;"
+                            >
+                                This document link is personal to you. Please keep it private.
+                                <p
+                                t-if="company.email"
+                                style="margin:8px 0 0;"
+                            >Questions? Contact <a
+                                t-att-href="'mailto:%s' % company.email"
+                                style="color:#48545e;text-decoration:underline;"
+                                t-out="company.email"
+                            />.</p>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </template>
+    <template id="mail_notification_completion" name="Signed document email layout">
+        <html t-att-lang="lang">
+            <head>
+                <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+            </head>
+            <body style="margin:0;padding:0;background-color:#f5f4f1;">
+                <t t-call="mail.notification_preview" />
+                <t t-out="message.body" />
+            </body>
+        </html>
+    </template>
+</odoo>
