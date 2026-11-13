@@ -83,11 +83,11 @@
                                     <tr>
                                         <td
                                             bgcolor="#173b4a"
-                                            style="border-radius:6px;"
+                                            style="border-radius:6px;background-color:#173b4a;"
                                         >
                                             <a
                                                 t-att-href="document_url"
-                                                style="display:inline-block;padding:14px 22px;border:1px solid #173b4a;border-radius:6px;color:#ffffff;font-size:15px;font-weight:bold;text-decoration:none;"
+                                                style="display:inline-block;background-color:#173b4a;padding:14px 22px;border:1px solid #173b4a;border-radius:6px;color:#ffffff;font-size:15px;font-weight:bold;text-decoration:none;"
                                             >View signed PDF</a>
                                         </td>
                                     </tr>
