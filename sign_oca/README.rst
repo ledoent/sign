@@ -122,8 +122,13 @@ Sign from template
 Sign from portal
 ----------------
 
-- customers who are using portal can sign their documents from portal
-  directly in addition to being able to sign them from emails.
+- Customers can sign documents from the portal or from the link in their
+  email.
+- My Account shows **Signature Required** first when the customer has a
+  request they have not signed yet. This action does not include
+  requests waiting only for someone else's signature.
+- **Signature Requests** keeps the complete history accessible,
+  including completed documents and requests awaiting other signers.
 
 Known issues / Roadmap
 ======================
@@ -165,6 +170,10 @@ Contributors
 - `Kencove <https://www.kencove.com>`__:
 
   - Mohamed Alkobrosli
+
+- `Ledo Web Services <https://ledoweb.com>`__:
+
+  - Don Kendall
 
 Maintainers
 -----------

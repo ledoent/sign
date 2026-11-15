@@ -62,7 +62,13 @@
                         </td>
                         <td class="text-end">
                             <!-- t-field is essential to show display name not technical name -->
-                            <span t-field="sign_request.request_id.state" />
+                            <span
+                                t-if="sign_request.request_id.state == '0_sent' and not sign_request.signed_on"
+                            >Signature required</span>
+                            <span
+                                t-elif="sign_request.request_id.state == '0_sent'"
+                            >Awaiting other signatures</span>
+                            <span t-else="" t-field="sign_request.request_id.state" />
                         </td>
                     </tr>
                 </t>

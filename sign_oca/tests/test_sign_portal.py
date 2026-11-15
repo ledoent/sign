@@ -129,6 +129,69 @@ class TestSignPortal(SignOcaCommon, HttpCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, b"")
 
+    def test_pending_filter_and_counter_require_current_signer_action(self):
+        portal = self.env["res.users"].search([("login", "=", "portal")])
+        signer = self.request.signer_ids
+        signer.partner_id = portal.partner_id
+        self.request.name = "Agreement requiring your signature"
+        self.env["sign.oca.request.signer"].create(
+            {
+                "request_id": self.request.id,
+                "partner_id": self.signer.id,
+                "role_id": self.env.ref("sign_oca.sign_role_employee").id,
+            }
+        )
+        self.env.flush_all()
+        self.authenticate("portal", "portal")
+
+        def pending_count():
+            response = self.url_open(
+                "/my/counters",
+                data=json.dumps(
+                    {"params": {"counters": {"sign_oca_pending_count": "alert"}}}
+                ),
+                headers={"Content-Type": "application/json"},
+            )
+            response.raise_for_status()
+            return response.json()["result"]["sign_oca_pending_count"]
+
+        self.assertEqual(pending_count(), 1)
+        pending = self.url_open("/my/sign_requests?filterby=pending")
+        pending.raise_for_status()
+        self.assertIn(self.request.name, pending.text)
+        self.assertIn("Signature required", pending.text)
+
+        items = signer.get_info()["items"]
+        for item in items.values():
+            item["value"] = "Synthetic Pending Signer"
+        signer.action_sign(items, access_token=signer.access_token)
+        self.assertEqual(self.request.state, "0_sent")
+        self.env.flush_all()
+        self.assertEqual(pending_count(), 0)
+        self.assertNotIn(
+            self.request.name,
+            self.url_open("/my/sign_requests?filterby=pending").text,
+        )
+        self.assertIn(
+            "Awaiting other signatures",
+            self.url_open("/my/sign_requests?filterby=sent").text,
+        )
+
+    def test_pending_filter_and_counter_exclude_other_partners(self):
+        self.authenticate("portal", "portal")
+        pending = self.url_open("/my/sign_requests?filterby=pending")
+        pending.raise_for_status()
+        self.assertNotIn(self.request.name, pending.text)
+        response = self.url_open(
+            "/my/counters",
+            data=json.dumps(
+                {"params": {"counters": {"sign_oca_pending_count": "alert"}}}
+            ),
+            headers={"Content-Type": "application/json"},
+        )
+        response.raise_for_status()
+        self.assertEqual(response.json()["result"]["sign_oca_pending_count"], 0)
+
     def test_signing_logs_the_signer_not_the_superuser(self):
         """The audit log must name who signed, not who wrote the row.
 

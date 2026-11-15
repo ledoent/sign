@@ -137,6 +137,13 @@ class PortalSign(CustomerPortal):
                 "label": request.env._("sent"),
                 "domain": [("request_id.state", "=", "0_sent")],
             },
+            "pending": {
+                "label": request.env._("Signature Required"),
+                "domain": [
+                    ("request_id.state", "=", "0_sent"),
+                    ("signed_on", "=", False),
+                ],
+            },
             "signed": {
                 "label": request.env._("Signed"),
                 "domain": [("request_id.state", "=", "2_signed")],
@@ -191,13 +198,20 @@ class PortalSign(CustomerPortal):
         )
         return values
 
-    def _prepare_home_portal_values(self, counters):
-        values = super()._prepare_home_portal_values(counters)
-        if "sign_oca_count" in counters:
+    def _prepare_portal_counter_values(self, counter):
+        if counter in ("sign_oca_count", "sign_oca_pending_count"):
             domain = self.get_sign_requests_domain(request)
-            SignRequests = request.env["sign.oca.request.signer"].sudo()
-            values["sign_oca_count"] = SignRequests.search_count(domain)
-        return values
+            if counter == "sign_oca_pending_count":
+                domain = Domain.AND(
+                    [
+                        domain,
+                        self._get_my_sign_requests_searchbar_filters()["pending"][
+                            "domain"
+                        ],
+                    ]
+                )
+            return "sign.oca.request.signer", domain, "sudo"
+        return super()._prepare_portal_counter_values(counter)
 
     @http.route(
         ["/my/sign_requests", "/my/sign_requests/page/<int:page>"],

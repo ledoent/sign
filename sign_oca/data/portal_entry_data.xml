@@ -7,9 +7,24 @@
         <field
             name="image"
             type="bytes"
-            file="web/static/img/mimetypes/document.svg"
+            file="sign_oca/static/src/img/portal_signature.svg"
         />
         <field name="placeholder_count">sign_oca_count</field>
         <field name="category">client_category</field>
+    </record>
+    <record id="portal_sign_required" model="portal.entry">
+        <field name="name">Signature Required</field>
+        <field
+            name="description"
+        >Action required: review and sign your agreements</field>
+        <field name="url">/my/sign_requests?filterby=pending</field>
+        <field
+            name="image"
+            type="bytes"
+            file="sign_oca/static/src/img/portal_signature.svg"
+        />
+        <field name="placeholder_count">sign_oca_pending_count</field>
+        <field name="category">alert</field>
+        <field name="sequence" eval="10" />
     </record>
 </odoo>
