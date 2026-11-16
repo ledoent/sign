@@ -1,7 +1,7 @@
 /** @odoo-module **/
 /* global Event */
 
-import {SignatureDialog} from "@web/core/signature/signature_dialog";
+import {SignOcaSignatureDialog} from "../components/signature_dialog/signature_dialog.esm";
 import {registry} from "@web/core/registry";
 import {renderToString} from "@web/core/utils/render";
 
@@ -31,29 +31,37 @@ const signatureSignOca = {
             renderToString("sign_oca.sign_iframe_field_signature", {item: item})
         )[0];
         if (item.role_id === parent.info.role_id) {
-            signatureItem[0].addEventListener("focus_signature", () => {
-                var signatureOptions = {
-                    nameAndSignatureProps: {fontColor: "DarkBlue"},
-                    defaultName: parent.info.partner.name,
+            const openSignature = () => {
+                // Dialog mounting waits for fonts. Repeated clicks must not stack
+                // dialogs (and their downloads), including clicks on other fields.
+                if (parent.signatureDialogOpen) {
+                    return;
+                }
+                parent.signatureDialogOpen = true;
+                const onClose = () => {
+                    parent.signatureDialogOpen = false;
                 };
-                parent.dialogService.add(SignatureDialog, {
-                    ...signatureOptions,
-                    uploadSignature: (data) =>
-                        this.uploadSignature(parent, item, signatureItem, data),
-                });
-            });
+                try {
+                    parent.dialogService.add(
+                        SignOcaSignatureDialog,
+                        {
+                            nameAndSignatureProps: {fontColor: "DarkBlue"},
+                            defaultName: parent.info.partner.name,
+                            uploadSignature: (data) =>
+                                this.uploadSignature(parent, item, signatureItem, data),
+                        },
+                        {onClose}
+                    );
+                } catch (error) {
+                    onClose();
+                    throw error;
+                }
+            };
+            signatureItem[0].addEventListener("focus_signature", openSignature);
             input.addEventListener("click", (ev) => {
                 ev.preventDefault();
                 ev.stopPropagation();
-                var signatureOptions = {
-                    nameAndSignatureProps: {fontColor: "DarkBlue"},
-                    defaultName: parent.info.partner.name,
-                };
-                parent.dialogService.add(SignatureDialog, {
-                    ...signatureOptions,
-                    uploadSignature: (data) =>
-                        this.uploadSignature(parent, item, signatureItem, data),
-                });
+                openSignature();
             });
             input.addEventListener("keydown", (ev) => {
                 if ((ev.keyCode || ev.which) !== 9) {

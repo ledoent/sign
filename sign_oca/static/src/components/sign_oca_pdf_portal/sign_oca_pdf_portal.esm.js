@@ -7,7 +7,7 @@ import SignOcaPdf from "../sign_oca_pdf/sign_oca_pdf.esm.js";
 import {MainComponentsContainer} from "@web/core/main_components_container";
 import {rpc} from "@web/core/network/rpc";
 import {startSignItemNavigator} from "./sign_oca_navigator.esm";
-import {signal, whenReady} from "@odoo/owl";
+import {onWillUnmount, signal, whenReady} from "@odoo/owl";
 import {useService} from "@web/core/utils/hooks";
 
 export class SignOcaPdfPortal extends SignOcaPdf {
@@ -18,6 +18,7 @@ export class SignOcaPdfPortal extends SignOcaPdf {
         this.signer_id = this.props.signer_id;
         this.access_token = this.props.access_token;
         super.setup(...arguments);
+        onWillUnmount(() => this.navigator?.destroy());
     }
     async willStart() {
         this.info = await this.rpc(
@@ -82,6 +83,7 @@ export class SignOcaPdfPortal extends SignOcaPdf {
         });
     }
     navigate() {
+        this.navigator?.destroy();
         const target = this.iframe().contentDocument.getElementById("viewerContainer");
         this.navigator = startSignItemNavigator(this, target, this.ui);
     }

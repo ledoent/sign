@@ -57,6 +57,7 @@ export function startSignItemNavigator(parent, target, ui) {
     const state = {
         started: false,
         isScrolling: false,
+        destroyed: false,
     };
     const navigator = parent
         .iframe()
@@ -146,6 +147,9 @@ export function startSignItemNavigator(parent, target, ui) {
         setTip(_t("Next"));
 
         _scrollToSignItemPromise(item).then(() => {
+            if (state.destroyed) {
+                return;
+            }
             // Define input to deal with input fields if present
             const input = item.querySelector("input");
             if (input) {
@@ -200,12 +204,13 @@ export function startSignItemNavigator(parent, target, ui) {
         }
     }
 
-    navigator.addEventListener("click", () => {
+    const onNavigatorClick = () => {
         if (checkSignItemsCompletion.length > 0) {
             goToNextSignItem();
             signItemsToComplete = signItemsToComplete.slice(1);
         }
-    });
+    };
+    navigator.addEventListener("click", onNavigatorClick);
 
     setTip(_t("Click to start"));
     navigator.focus();
@@ -230,5 +235,10 @@ export function startSignItemNavigator(parent, target, ui) {
         goToNextSignItem,
         toggle,
         state,
+        destroy() {
+            state.destroyed = true;
+            navigator.removeEventListener("click", onNavigatorClick);
+            window.removeEventListener("resize", watch_navigator);
+        },
     };
 }

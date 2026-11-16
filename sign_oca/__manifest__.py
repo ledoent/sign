@@ -49,6 +49,8 @@
             "sign_oca/static/src/components/sign_oca_preview/sign_oca_preview.esm.js",
             "sign_oca/static/src/components/sign_oca_preview/sign_oca_preview.xml",
             "sign_oca/static/src/elements/text.esm.js",
+            "sign_oca/static/src/components/signature_dialog/signature_dialog.esm.js",
+            "sign_oca/static/src/components/signature_dialog/signature_dialog.xml",
             "sign_oca/static/src/elements/signature.esm.js",
             "sign_oca/static/src/elements/check.esm.js",
             "sign_oca/static/src/components/sign_oca_pdf/sign_oca_pdf.esm.js",
@@ -68,7 +70,7 @@
             "web/static/lib/bootstrap/scss/_maps.scss",
             ("include", "web._assets_bootstrap_frontend"),
             ("include", "web._assets_bootstrap_backend"),
-            "web/static/lib/odoo_ui_icons/*",
+            ("include", "web.icons_fonts"),
             "web/static/lib/bootstrap/scss/_functions.scss",
             "web/static/lib/bootstrap/scss/_mixins.scss",
             "web/static/lib/bootstrap/scss/utilities/_api.scss",
@@ -83,6 +85,8 @@
             "sign_oca/static/src/components/sign_oca_pdf_portal/sign_oca_navigator.esm.js",
             "sign_oca/static/src/components/sign_oca_pdf_common/sign_oca_pdf_common.esm.js",
             "sign_oca/static/src/elements/text.esm.js",
+            "sign_oca/static/src/components/signature_dialog/signature_dialog.esm.js",
+            "sign_oca/static/src/components/signature_dialog/signature_dialog.xml",
             "sign_oca/static/src/elements/signature.esm.js",
             "sign_oca/static/src/elements/check.esm.js",
             "sign_oca/static/src/components/sign_oca_pdf/sign_oca_pdf.esm.js",
@@ -92,6 +96,11 @@
         ],
         "sign_oca.sign_assets": [
             "sign_oca/static/src/scss/sign.scss",
+        ],
+        "web.assets_unit_tests": [
+            "sign_oca/static/src/components/sign_oca_pdf_portal/sign_oca_navigator.esm.js",
+            "sign_oca/static/src/components/sign_oca_pdf_portal/sign_oca_pdf_portal.esm.js",
+            "sign_oca/static/tests/**/*.test.js",
         ],
         "web.assets_tests": [
             "sign_oca/static/src/tests/sign_tour.esm.js",

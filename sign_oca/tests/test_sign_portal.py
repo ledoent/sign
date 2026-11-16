@@ -84,6 +84,83 @@ class TestSignPortal(SignOcaCommon, HttpCase):
             val["value"] = "My Name"
             data[key] = val
 
+    def test_signature_dialog_fonts_and_icons_in_frontend_bundle(self):
+        """Use the real signing bundle; backend Hoot CSS would hide missing fonts."""
+        request = self.env["sign.oca.request"].create(
+            {
+                "data": self.data,
+                "name": "Synthetic signature dialog regression",
+                "signer_ids": [
+                    (
+                        0,
+                        0,
+                        {
+                            "partner_id": self.signer.id,
+                            "role_id": self.role_customer.id,
+                        },
+                    )
+                ],
+            }
+        )
+        request.add_item(
+            {
+                "role_id": self.role_customer.id,
+                "field_id": self.env.ref("sign_oca.sign_field_signature").id,
+                "page": 1,
+                "position_x": 20,
+                "position_y": 20,
+                "width": 30,
+                "height": 10,
+            }
+        )
+        request.action_send()
+        self.env.flush_all()
+        self.browser_js(
+            request.signer_ids.access_url,
+            """
+            (async () => {
+                const until = async (fn) => {
+                    for (let i = 0; i < 200; i++) {
+                        const value = fn();
+                        if (value) { return value; }
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                    throw new Error("Synthetic signature UI did not become ready");
+                };
+                const frame = () => document.querySelector(".o_sign_oca_iframe")
+                    ?.contentDocument;
+                await until(() => frame()?.querySelector(".o_sign_oca_ready"));
+                const fields = frame().querySelectorAll(".o_sign_oca_field");
+                const signature = [...fields].find(el => !el.querySelector("input"));
+                signature.firstElementChild.click();
+                signature.firstElementChild.click();
+                const button = await until(() => document.querySelector(
+                    ".o_web_sign_auto_select_style button"));
+                if (document.querySelectorAll(".modal-dialog").length !== 1) {
+                    throw new Error("Repeated clicks stacked signature dialogs");
+                }
+                const requests = performance.getEntriesByType("resource")
+                    .filter(entry => entry.name.includes("/web/sign/get_fonts/"));
+                if (requests.length !== 1 || !requests[0].name.endsWith(
+                    "/web/sign/get_fonts/LaBelleAurore-Regular.ttf")) {
+                    throw new Error("Dialog eagerly downloaded all fonts");
+                }
+                const fonts = await document.fonts.load(
+                    '16px "Material Symbols Outlined"', "arrow_drop_down");
+                if (!fonts.length || fonts.some(font => font.status !== "loaded")) {
+                    throw new Error("Signing bundle is missing the icon font");
+                }
+                if (!getComputedStyle(button, "::after").fontFamily.includes(
+                    "Material Symbols Outlined")) {
+                    throw new Error("Dropdown caret does not use the icon font");
+                }
+                console.log("test successful");
+            })();
+            """,
+            login=None,
+            timeout=90,
+        )
+
     def test_download_requires_completed_owned_request(self):
         self.authenticate("portal", "portal")
         url = f"/my/sign/{self.request.id}/download"

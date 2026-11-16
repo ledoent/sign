@@ -64,3 +64,8 @@
   for someone else's signature.
 - **Signature Requests** keeps the complete history accessible, including
   completed documents and requests awaiting other signers.
+- Click a signature field to open **Adopt Your Signature**. The default style
+  loads first; opening the style picker loads the remaining font choices.
+  **Draw** and **Load** remain available for handwritten and uploaded signatures.
+- **Adopt & Sign** fills the selected field. Submit the document with
+  **Validate & Send document** after completing all required fields.
