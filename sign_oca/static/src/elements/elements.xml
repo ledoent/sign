@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+
+    <t t-name="sign_oca.sign_iframe_field_check">
+        <input
+            t-if="this.item.role == this.role"
+            style="width:100%;height:100%;"
+            type="checkbox"
+            t-att-tabindex="-1"
+            t-att-checked="this.item.value? this.item.value: undefined"
+        />
+        <div t-else="" />
+    </t>
+    <t t-name="sign_oca.sign_iframe_field_text">
+        <input
+            style="width:100%;height:100%"
+            type="text"
+            t-att-tabindex="-1"
+            t-att-value="this.item.value? this.item.value: undefined"
+            t-att-placeholder="this.item.placeholder || this.item.name"
+            t-if="this.item.role == this.role"
+        />
+        <div
+            style="width:100%;height:100%"
+            t-out="this.item.value? this.item.value: undefined"
+            t-else=""
+        />
+    </t>
+    <t t-name="sign_oca.sign_iframe_field_signature">
+        <img
+            style="width:100%;height:100%"
+            t-attf-src="{{this.item.value}}"
+            t-if="this.item.value"
+        />
+        <div style="width:100%;height:100%" t-else="" t-out="this.placeholder" />
+    </t>
+    <t t-name="sign_oca.sign_oca_sign_dialog">
+        <div>
+            <div class="o_sign_oca_signature" />
+            <div
+                class="mt16 small"
+            >By clicking Adopt and Sign, I agree that the chosen signature/initials will be a valid electronic representation of my hand-written signature/initials for all purposes when it is used on documents, including legally binding contracts.</div>
+        </div>
+    </t>
+</templates>

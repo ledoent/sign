@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates xml:space="preserve">
+    <t
+        t-name="sign_oca.NameAndSignature"
+        t-inherit="web.NameAndSignature"
+        t-inherit-mode="primary"
+    >
+        <xpath expr="//Dropdown" position="attributes">
+            <attribute name="beforeOpen">this.loadFonts.bind(this)</attribute>
+        </xpath>
+    </t>
+</templates>
