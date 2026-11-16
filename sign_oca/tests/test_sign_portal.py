@@ -3,10 +3,15 @@
 
 import base64
 import json
+from unittest.mock import patch
+from urllib.parse import parse_qs, urlsplit
 
 from lxml import html
 
+from odoo import fields
 from odoo.tests.common import HttpCase, tagged
+
+from odoo.addons.sign_oca.controllers.main import PortalSign
 
 from .common import SignOcaCommon
 
@@ -191,6 +196,83 @@ class TestSignPortal(SignOcaCommon, HttpCase):
         )
         response.raise_for_status()
         self.assertEqual(response.json()["result"]["sign_oca_pending_count"], 0)
+
+    def test_pending_pager_preserves_filter_and_sort(self):
+        portal = self.env["res.users"].search([("login", "=", "portal")])
+        self.request.signer_ids.partner_id = portal.partner_id
+        self.request.name = "First pending agreement"
+
+        def new_request(name, state):
+            return self.env["sign.oca.request"].create(
+                {
+                    "name": name,
+                    "data": self.data,
+                    "state": state,
+                    "signer_ids": [
+                        (
+                            0,
+                            0,
+                            {
+                                "partner_id": portal.partner_id.id,
+                                "role_id": self.role_customer.id,
+                            },
+                        )
+                    ],
+                }
+            )
+
+        completed = new_request("Completed between pending requests", "2_signed")
+        second = new_request("Second pending agreement", "0_sent")
+        self.env.flush_all()
+        self.authenticate("portal", "portal")
+        with patch.object(PortalSign, "_items_per_page", 1):
+            first = self.url_open(
+                "/my/sign_requests?filterby=pending&sortby=reverse_date"
+            )
+            first.raise_for_status()
+            page = html.fromstring(first.content)
+            links = page.xpath("//a[contains(@href, '/my/sign_requests/page/2')]/@href")
+            self.assertTrue(links)
+            for link in links:
+                query = parse_qs(urlsplit(link).query)
+                self.assertEqual(query.get("filterby"), ["pending"])
+                self.assertEqual(query.get("sortby"), ["reverse_date"])
+            response = self.url_open(links[0])
+            response.raise_for_status()
+            self.assertIn(second.name, response.text)
+            self.assertNotIn(completed.name, response.text)
+            self.assertNotIn(self.request.name, response.text)
+
+    def test_invalid_search_options_fall_back_to_defaults(self):
+        portal = self.env["res.users"].search([("login", "=", "portal")])
+        self.request.signer_ids.partner_id = portal.partner_id
+        self.env.flush_all()
+        self.authenticate("portal", "portal")
+        for query in (
+            "sortby=invalid&filterby=all",
+            "sortby=state&filterby=invalid",
+            "sortby=invalid&filterby=invalid",
+        ):
+            response = self.url_open("/my/sign_requests?" + query)
+            response.raise_for_status()
+            self.assertIn(self.request.name, response.text)
+
+    def test_waiting_filter_excludes_required_and_other_partner_requests(self):
+        portal = self.env["res.users"].search([("login", "=", "portal")])
+        self.request.signer_ids.partner_id = portal.partner_id
+        self.env.flush_all()
+        self.authenticate("portal", "portal")
+        url = "/my/sign_requests?filterby=waiting"
+        self.assertNotIn(self.request.name, self.url_open(url).text)
+        self.request.signer_ids.signed_on = fields.Datetime.now()
+        self.env.flush_all()
+        waiting = self.url_open(url)
+        waiting.raise_for_status()
+        self.assertIn(self.request.name, waiting.text)
+        self.assertIn("Awaiting other signatures", waiting.text)
+        self.request.signer_ids.partner_id = self.signer
+        self.env.flush_all()
+        self.assertNotIn(self.request.name, self.url_open(url).text)
 
     def test_signing_logs_the_signer_not_the_superuser(self):
         """The audit log must name who signed, not who wrote the row.

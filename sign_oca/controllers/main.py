@@ -144,6 +144,13 @@ class PortalSign(CustomerPortal):
                     ("signed_on", "=", False),
                 ],
             },
+            "waiting": {
+                "label": request.env._("Awaiting Other Signatures"),
+                "domain": [
+                    ("request_id.state", "=", "0_sent"),
+                    ("signed_on", "!=", False),
+                ],
+            },
             "signed": {
                 "label": request.env._("Signed"),
                 "domain": [("request_id.state", "=", "2_signed")],
@@ -154,20 +161,33 @@ class PortalSign(CustomerPortal):
     def _prepare_sign_portal_rendering_values(self, page=1, sign_page=False, **kwargs):
         # Sorting feature
         searchbar_sortings = {
-            "state": {"label": request.env._("Sent to Signed"), "order": "request_id"},
+            "state": {
+                "label": request.env._("Sent to Signed"),
+                "order": "request_id, id",
+            },
             "reverse_state": {
                 "label": request.env._("Signed to Sent"),
-                "order": "request_id desc",
+                "order": "request_id desc, id desc",
             },
-            "date": {"label": request.env._("Newest"), "order": "create_date desc"},
-            "reverse_date": {"label": request.env._("Oldest"), "order": "create_date"},
+            "date": {
+                "label": request.env._("Newest"),
+                "order": "create_date desc, id desc",
+            },
+            "reverse_date": {
+                "label": request.env._("Oldest"),
+                "order": "create_date, id",
+            },
         }
         sortby = kwargs.get("sortby", "state")
+        if sortby not in searchbar_sortings:
+            sortby = "state"
         order = searchbar_sortings[sortby]["order"]
         # Filtering feature
         searchbar_filters = self._get_my_sign_requests_searchbar_filters()
         filterby = kwargs.get("filterby") or "all"
-        domain = searchbar_filters.get(filterby, searchbar_filters["all"])["domain"]
+        if filterby not in searchbar_filters:
+            filterby = "all"
+        domain = searchbar_filters[filterby]["domain"]
         domain = Domain.AND([domain, self.get_sign_requests_domain(request)])
         SignRequests = request.env["sign.oca.request.signer"].sudo()
         pager_values = portal_pager(
@@ -175,7 +195,7 @@ class PortalSign(CustomerPortal):
             total=SignRequests.search_count(domain),
             page=page,
             step=self._items_per_page,
-            url_args={},
+            url_args={"sortby": sortby, "filterby": filterby},
         )
         sign_requests = SignRequests.search(
             domain,
