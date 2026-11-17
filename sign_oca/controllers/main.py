@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from urllib import parse
 
 from odoo import http
 from odoo.exceptions import AccessError, MissingError
@@ -208,35 +207,28 @@ class PortalSign(CustomerPortal):
         ["/my/sign/<int:request_id>/download"], type="http", auth="user", website=True
     )
     def portal_download_signed(self, request_id, **kw):
-        sign_request = request.env["sign.oca.request"].sudo().browse(request_id)
+        sign_request = request.env["sign.oca.request"].browse(request_id)
         if not sign_request.exists():
-            return request.not_found()
-        # find the signed document attachment
-        attachment = (
-            request.env["ir.attachment"]
-            .sudo()
-            .search(
+            raise request.not_found()
+        if request.env.user._is_internal():
+            sign_request.check_access("read")
+        else:
+            # A portal user must be an actual signer on THIS request. Without
+            # it, request_id is a sequential integer any authenticated user can
+            # walk to reach every signed document on the instance.
+            domain = Domain.AND(
                 [
-                    ("res_model", "=", "sign.oca.request"),
-                    ("res_id", "=", sign_request.id),
-                    ("res_field", "=", "data"),
-                ],
-                limit=1,
+                    self.get_sign_requests_domain(request),
+                    [("request_id", "=", request_id)],
+                ]
             )
+            if not request.env["sign.oca.request.signer"].sudo().search_count(domain):
+                raise request.not_found()
+            sign_request = sign_request.sudo()
+        if sign_request.state != "2_signed":
+            raise request.not_found()
+        return (
+            request.env["ir.binary"]
+            ._get_stream_from(sign_request.sudo(), "data", mimetype="application/pdf")
+            .get_response(as_attachment=True)
         )
-        if not attachment:
-            return request.not_found()
-        access_token = attachment.generate_access_token()[0]
-        ascii_filename = "document.pdf"
-        filename = sign_request.name or ascii_filename
-        # Ensure .pdf extension
-        if not filename.lower().endswith(".pdf"):
-            filename = f"{filename}.pdf"
-        utf8_filename = parse.quote(filename)
-        params = {
-            "download": "true",
-            "filename": utf8_filename,
-            "access_token": access_token,
-        }
-        url = f"/web/content/{attachment.id}?{parse.urlencode(params)}"
-        return request.redirect(url)

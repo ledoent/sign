@@ -3,6 +3,8 @@
 
 import base64
 
+from lxml import html
+
 from odoo.tests.common import HttpCase, tagged
 
 from .common import SignOcaCommon
@@ -75,3 +77,57 @@ class TestSignPortal(SignOcaCommon, HttpCase):
             val = self.request.signer_ids.get_info()["items"][key].copy()
             val["value"] = "My Name"
             data[key] = val
+
+    def test_download_requires_completed_owned_request(self):
+        """The download route must refuse a portal user who is not a signer.
+
+        `request_id` is a sequential integer, so without this check any
+        authenticated user can walk ids and retrieve every signed document on
+        the instance.
+        """
+        self.authenticate("portal", "portal")
+        url = f"/my/sign/{self.request.id}/download"
+        # Not a signer, and the request is not signed either.
+        self.assertEqual(self.url_open(url).status_code, 404)
+        portal = self.env["res.users"].search([("login", "=", "portal")])
+        signer = self.request.signer_ids
+        signer.partner_id = portal.partner_id
+        items = signer.get_info()["items"]
+        for item in items.values():
+            item["value"] = "Synthetic Portal Signer"
+        signer.action_sign(items, access_token=signer.access_token)
+        self.env.flush_all()
+        # Now the entitled signer, on a signed request: served.
+        response = self.url_open(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, base64.b64decode(self.request.data))
+        # Hand the request to somebody else: refused again.
+        signer.partner_id = self.signer
+        self.env.flush_all()
+        self.assertEqual(self.url_open(url).status_code, 404)
+
+    def test_pending_signed_request_has_no_download_link(self):
+        portal = self.env["res.users"].search([("login", "=", "portal")])
+        signer = self.request.signer_ids
+        signer.partner_id = portal.partner_id
+        self.env["sign.oca.request.signer"].create(
+            {
+                "request_id": self.request.id,
+                "partner_id": self.signer.id,
+                "role_id": self.env.ref("sign_oca.sign_role_employee").id,
+            }
+        )
+        items = signer.get_info()["items"]
+        for item in items.values():
+            item["value"] = "Synthetic Pending Signer"
+        signer.action_sign(items, access_token=signer.access_token)
+        self.assertEqual(self.request.state, "0_sent")
+        self.env.flush_all()
+        self.authenticate("portal", "portal")
+        response = self.url_open("/my/sign_requests")
+        response.raise_for_status()
+        page = html.fromstring(response.content)
+        self.assertIn(self.request.name, page.text_content())
+        self.assertFalse(
+            page.xpath(f"//a[@href='/my/sign/{self.request.id}/download']")
+        )
