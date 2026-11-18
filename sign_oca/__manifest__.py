@@ -70,7 +70,7 @@
             "web/static/lib/bootstrap/scss/_maps.scss",
             ("include", "web._assets_bootstrap_frontend"),
             ("include", "web._assets_bootstrap_backend"),
-            "web/static/lib/odoo_ui_icons/*",
+            ("include", "web.icons_fonts"),
             "web/static/lib/bootstrap/scss/_functions.scss",
             "web/static/lib/bootstrap/scss/_mixins.scss",
             "web/static/lib/bootstrap/scss/utilities/_api.scss",
