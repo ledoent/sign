@@ -4,6 +4,7 @@
 import hashlib
 import json
 import logging
+import re
 from base64 import b64decode
 from binascii import Error as BinasciiError
 from hashlib import sha256
@@ -276,34 +277,62 @@ class SignOcaRequest(models.Model):
         self.ensure_one()
         if (
             self.state != "2_signed"
-            or not self.env.company.sign_oca_send_sign_request_copy
+            or not self.company_id.sign_oca_send_sign_request_copy
         ):
             return
+        filename = self.filename or self.template_id.filename or self.name
+        filename = re.sub(r"[\x00-\x1f/\\]+", "-", filename).strip()
+        if filename.lower().endswith(".pdf"):
+            filename = filename[:-4]
+        filename = f"{filename} - signed.pdf"
+        attachments = (
+            self.env["ir.attachment"]
+            .sudo()
+            .search(
+                [
+                    ("res_model", "=", "sign.oca.request"),
+                    ("res_id", "=", self.id),
+                    ("res_field", "=", "data"),
+                ]
+            )
+        )
+        attachments.write({"name": filename})
         for signer in self.signer_ids:
-            attachments = (
-                self.env["ir.attachment"]
-                .sudo()
-                .search(
-                    [
-                        ("res_model", "=", "sign.oca.request"),
-                        ("res_id", "=", self.id),
-                        ("res_field", "=", "data"),
-                    ]
+            signer._portal_ensure_token()
+            base_url = signer.get_base_url()
+            body = (
+                self.env["ir.qweb"]
+                .with_context(lang=signer.partner_id.lang or self.env.lang)
+                ._render(
+                    "sign_oca.sign_oca_completed_mail",
+                    {
+                        "signer": signer,
+                        "document": self,
+                        "company": self.company_id,
+                        "filename": filename,
+                        "base_url": base_url,
+                        "document_url": (
+                            f"{base_url}/sign_oca/content/{signer.id}/{signer.access_token}"
+                        ),
+                        "portal_url": (
+                            f"{base_url}/my/sign_requests"
+                            if signer.partner_id.user_ids.filtered("active")
+                            else False
+                        ),
+                    },
                 )
             )
             # The message will not be linked to the record because we do not want
             # it happen.
             self.env["mail.thread"].message_notify(
-                body=self.env._(
-                    "%(name)s (%(email)s) has sent the signed document.",
-                    name=self.create_uid.name,
-                    email=self.create_uid.email,
-                ),
+                body=body,
                 partner_ids=signer.partner_id.ids,
-                subject=self.env._("Signed document"),
+                subject=self.env._("Fully signed: %(document)s", document=self.name),
                 subtype_id=self.env.ref("mail.mt_comment").id,
                 mail_auto_delete=False,
                 attachment_ids=attachments.ids,
+                email_add_signature=False,
+                email_layout_xmlid="sign_oca.mail_notification_completion",
             )
 
     def _check_signed(self):

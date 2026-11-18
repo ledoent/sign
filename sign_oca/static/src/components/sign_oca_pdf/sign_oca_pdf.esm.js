@@ -112,13 +112,26 @@ export default class SignOcaPdf extends SignOcaPdfCommon {
     postIframeField(item) {
         if (item.role_id === this.info.role_id) {
             var signatureItem = super.postIframeField(...arguments);
+            signatureItem[0].classList.add("o_sign_oca_field_editable");
             signatureItem[0].append(
                 SignRegistry.get(item.field_type).generate(this, item, signatureItem)
+            );
+            signatureItem[0].classList.toggle(
+                "o_sign_oca_field_complete",
+                SignRegistry.get(item.field_type).check(item)
             );
             return signatureItem;
         }
     }
     checkFilledAll() {
+        for (const item of Object.values(this.info.items)) {
+            if (item.role_id === this.info.role_id && this.items[item.id]) {
+                this.items[item.id].classList.toggle(
+                    "o_sign_oca_field_complete",
+                    SignRegistry.get(item.field_type).check(item)
+                );
+            }
+        }
         this.to_sign_update =
             Object.values(this.info.items).filter((item) => {
                 return (
